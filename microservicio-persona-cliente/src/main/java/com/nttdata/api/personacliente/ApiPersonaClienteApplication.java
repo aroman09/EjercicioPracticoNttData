@@ -1,4 +1,4 @@
-package com.devsu.api.personacliente;
+package com.nttdata.api.personacliente;
 
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.amqp.core.Queue;
@@ -20,17 +20,6 @@ public class ApiPersonaClienteApplication {
 		SpringApplication.run(ApiPersonaClienteApplication.class, args);
 	}
 
-	@Bean
-	public MessageConverter converter(){
-		return new Jackson2JsonMessageConverter();
-	}
-
-	@Bean
-	public AmqpTemplate amqpTemplate(ConnectionFactory connectionFactory){
-		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory);
-		rabbitTemplate.setMessageConverter(converter());
-		return rabbitTemplate;
-	}
 
 
 
