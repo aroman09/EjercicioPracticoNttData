@@ -115,7 +115,7 @@ public class TransactionServiceImp implements TransactionService {
         Optional<TransactionDto> transactionDto = retrieveEndTransaction(account.getNumeroCuenta());
         if (!transactionDto.isPresent()){
             transactionDto= Optional.of(new TransactionDto());
-            transactionDto.get().setSaldo(0);
+            transactionDto.get().setSaldo(account.getSaldoInicial());
         }
         transaction.setSaldo(processTransaction.calculeTotal(transactionDto.get().getSaldo(),transaction.getValor()));
         return transaction;

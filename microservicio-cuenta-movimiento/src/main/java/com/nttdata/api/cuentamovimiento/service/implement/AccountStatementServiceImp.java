@@ -29,15 +29,16 @@ public class AccountStatementServiceImp implements AccountStatementService {
     AccountServiceImp accountServiceImp;
     @Autowired
     TransactionServiceImp transactionServiceImp;
-
-    private ClienteRequestProducerService clienteRequestService;
-    private ClienteResponseConsumerService clienteResponse;
+    @Autowired
+    ClienteRequestProducerService clienteRequestService;
+    @Autowired
+    ClienteResponseConsumerService clienteResponse;
 
 
     @Override
     public AccountStatementDto retrieveAccountStatement(LocalDate startDate, LocalDate endDate, String idClient) {
-        log.info("Fechas para generar reporte: "+startDate+"-"+endDate+" del cliente "+idClient);
-        if (startDate.isBefore(endDate))
+        log.info("Fechas para generar reporte: "+startDate+" - "+endDate+" del cliente "+idClient);
+        if (startDate.isAfter(endDate))
             throw new Error("990");
         List<AccountDto> listaCuentas = accountServiceImp.listAccountByClient(idClient);
         List<AccountTransactionDto> movimientos_cuenta = new ArrayList<>();
@@ -56,21 +57,21 @@ public class AccountStatementServiceImp implements AccountStatementService {
             cliente = objectMapper.readValue(clienteStrCompletableFuture.get(), Client.class);
             log.info("Cliente recuperado "+cliente);
             System.out.println(cliente);
+            accountStatementDto.setCliente(cliente);
+            listaCuentas.stream()
+                    .forEach(cuenta -> {
+                        AccountTransactionDto accountTransactionDto= new AccountTransactionDto();
+                        accountTransactionDto.setCuenta(cuenta);
+                        accountTransactionDto.setMovimientos(
+                                transactionServiceImp.listallTransactionByDate(startDate,endDate,cuenta.getNumeroCuenta()));
+                        movimientos_cuenta.add(accountTransactionDto);
+                    });
+            accountStatementDto.setCuentas(movimientos_cuenta);
+            return accountStatementDto;
         }catch (Exception ex)
         {
             throw new Error("980");
         }
-        accountStatementDto.setCliente(cliente);
-        listaCuentas.stream()
-                .forEach(cuenta -> {
-                    AccountTransactionDto accountTransactionDto= new AccountTransactionDto();
-                    accountTransactionDto.setCuenta(cuenta);
-                    accountTransactionDto.setMovimientos(
-                            transactionServiceImp.listallTransactionByDate(startDate,endDate,cuenta.getNumeroCuenta()));
-                    movimientos_cuenta.add(accountTransactionDto);
-                });
-        accountStatementDto.setCuentas(movimientos_cuenta);
-        return accountStatementDto;
     }
 
     public byte[] generatePdf(LocalDate startDate, LocalDate endDate, String idClient) {

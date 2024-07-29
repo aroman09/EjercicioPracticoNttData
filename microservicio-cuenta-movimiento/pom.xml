@@ -8,7 +8,7 @@
 		<version>3.3.2</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.devsu.api</groupId>
+	<groupId>com.nttdata.api</groupId>
 	<artifactId>microservicio-cuenta-movimiento</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>microservicio-cuenta-movimiento</name>
@@ -16,6 +16,7 @@
 
 	<properties>
 		<java.version>17</java.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<dependencies>
 		<dependency>
