@@ -50,28 +50,21 @@ public class AccountServiceImp implements AccountService {
 
     @Override
     public List<AccountDto> listallAccount() {
-        List<AccountDto> listAccountFinal = new ArrayList<>();
-        try {
-            List<AccountDto> listAccount = accountRepository.findAll().stream().map(
-                    (account) -> modelMapper.map(account, AccountDto.class)
-            ).collect(Collectors.toList());
+        List<AccountDto> listAccount = accountRepository.findAll().stream().map(
+                (account) -> modelMapper.map(account, AccountDto.class)
+        ).collect(Collectors.toList());
 
-            for (AccountDto account : listAccount) {
-                AccountDto auxiliar = account;
-                auxiliar.setIdCliente(getClienteById(account.getIdCliente()).getNombre());
-                listAccountFinal.add(auxiliar);
-            }
-        }catch (Exception ex){
-            throw new Error("999");
-        }
-        return listAccountFinal;
+        return changeIdToName(listAccount);
     }
+
 
     @Override
     public List<AccountDto> listAccountByClient(String idClient) {
-        return accountRepository.findAllByIdCliente(idClient).stream().map(
+        List<AccountDto> listAccount = accountRepository.findAllByIdCliente(idClient).stream().map(
                 (account)-> modelMapper.map(account,AccountDto.class)
         ).collect(Collectors.toList());
+
+        return changeIdToName(listAccount);
     }
 
     @Override
@@ -108,19 +101,32 @@ public class AccountServiceImp implements AccountService {
         return retrieveAccount(id);
     }
 
-    public Client getClienteById(String id) throws ExecutionException, InterruptedException, JsonProcessingException {
-        // Enviar solicitud a la cola de solicitudes
-        clienteRequestProducerService.obtenerClientePorIdentificacion(id);
-        Client cliente = new Client();
-        //obtener el cliente desde rabittmq
-        CompletableFuture<String> clienteStrCompletableFuture = clienteResponseConsumerService.obtenerClienteStr();
+    public Client getClienteById(String id)  {
+        try {
+            // Enviar solicitud a la cola de solicitudes
+            clienteRequestProducerService.obtenerClientePorIdentificacion(id);
+            Client cliente = new Client();
+            //obtener el cliente desde rabittmq
+            CompletableFuture<String> clienteStrCompletableFuture = clienteResponseConsumerService.obtenerClienteStr();
 
-        System.out.println("final respuetsa "+clienteStrCompletableFuture.get());
-        if (!clienteStrCompletableFuture.get().isEmpty()){
-            ObjectMapper objectMapper = new ObjectMapper();
-            cliente = objectMapper.readValue(clienteStrCompletableFuture.get(), Client.class);
-            System.out.println(cliente);
+            System.out.println("final respuetsa "+clienteStrCompletableFuture.get());
+            if (!clienteStrCompletableFuture.get().isEmpty()){
+                ObjectMapper objectMapper = new ObjectMapper();
+                cliente = objectMapper.readValue(clienteStrCompletableFuture.get(), Client.class);
+                System.out.println(cliente);
+            }
+            return cliente;
+        }catch (Exception ex){
+            throw new Error("980");
         }
-        return cliente;
+    }
+    private List<AccountDto> changeIdToName(List<AccountDto> listAccount){
+        List<AccountDto> listAccountFinal = new ArrayList<>();
+        for (AccountDto account : listAccount) {
+            AccountDto auxiliar = account;
+            auxiliar.setIdCliente(getClienteById(account.getIdCliente()).getNombre());
+            listAccountFinal.add(auxiliar);
+        }
+        return listAccountFinal;
     }
 }
